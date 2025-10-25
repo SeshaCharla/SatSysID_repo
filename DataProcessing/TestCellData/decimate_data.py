@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 plt.xlabel('Time [s]')
                 plt.ylabel(key + uc.units[key])
                 plt.title(dct[i][j].name + "_ssd")
-                plt.savefig("figs/" + dct[i][j].name + "_ssd_" + key + ".png", dpi=fig_dpi)
+                plt.savefig("./DataProcessing/TestCellData/figs/" + dct[i][j].name + "_ssd_" + key + ".png", dpi=fig_dpi)
                 if key != show_plot:
                     plt.close()
 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                 plt.xlabel('Time [s]')
                 plt.ylabel(key + uc.units[key])
                 plt.title(dct[i][j].name + "_iod")
-                plt.savefig("figs/" + dct[i][j].name + "_iod_" + key + ".png", dpi=fig_dpi)
+                plt.savefig("./DataProcessing/TestCellData/figs/" + dct[i][j].name + "_iod_" + key + ".png", dpi=fig_dpi)
                 if key != show_plot:
                     plt.close()
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     plt.xlabel('Index')
     plt.ylabel('Time [s]')
     plt.title('Time discontinuities in test Data')
-    plt.savefig("figs/time_discontinuities_test.png", dpi=fig_dpi)
+    plt.savefig("./DataProcessing/TestCellData/figs/time_discontinuities_test.png", dpi=fig_dpi)
     plt.close()
 
     # plt.show()

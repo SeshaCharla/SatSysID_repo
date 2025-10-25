@@ -1,6 +1,6 @@
 import numpy as np
 
-"""The file contains the functions that do the appropriate unit conversions for the states and inputs from the experimental data"""
+"""The file contains the functions that do the appropriate unit conversions for the states and inputs from the test-cell experimental data"""
 """ Standard Units:
     Temperature     : deference from 250 deg-C
     Mass flow rate  : g/s
@@ -45,5 +45,5 @@ units = {"T":std_units["T"],
          "u1":std_units["con"],
          "eta":std_units["con"],
          "y1":std_units["con"],
-         "u2":std_units["uinj"]}
-
+         "u2":std_units["uinj"],
+         "mu":r'[ratio]'}

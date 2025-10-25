@@ -98,7 +98,7 @@ class RawTestData():
     # ==============================================================
     def data_dir(self) -> str:
         """Returns the data directory for the test data"""
-        dir_prefix = "./../Data"
+        dir_prefix = "./Data"
         test_dir_prefix = "/test_cell_data/"
         add_test_dir_prefix_DG = "/Additional_TC_Data_DG/"
         add_test_dir_prefix_Aged = "/Additional_TC_Data_Aged/"
