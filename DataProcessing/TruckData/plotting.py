@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-mpl.use('tkAgg')
 
 def plot_TD(gca, x, y, t_skips, label='none', line_style='-', line_color="tab:orange"):
     """Plots with time skips"""
