@@ -109,24 +109,23 @@ if __name__ == '__main__':
     sim_data = rd.load_sim_data_set()
     filtered_sim_data = load_filtered_sim_data_set()
     fig_dpi = 300
+    keys = ['u1', 'u2', 'T', 'F', 'x1', 'x2', 'eta', 'gamma']
 
     # Plotting all the Data sets
     for i in range(3):
-        for key in ['u1', 'u2', 'T', 'F', 'x1', 'x2', 'eta', 'gamma']:
-            plt.figure()
-            if (key != 'eta'):
-                plt.plot(sim_data[i].raw['t'], sim_data[i].raw[key], '--', label=key, linewidth=1)
-            plt.plot(filtered_sim_data[i].ssd['t'], filtered_sim_data[i].ssd[key], label= key+"_filtered", linewidth=1)
-            plt.grid()
-            plt.legend()
-            plt.xlabel('Time [s]')
-            plt.ylabel(key)
-            plt.title(sim_data[i].name + "_ssd")
-            plt.savefig("./DataProcessing/SimData/figs/" + filtered_sim_data[i].name + "_ssd_" + key + ".png", dpi=fig_dpi)
-            if key != 'none':
-                plt.close()
-            else:
-                plt.show()
+        for k in range(len(keys)) :
+            plt.figure(k)
+            key = keys[k]
+            plt.plot(filtered_sim_data[i].ssd['t'], filtered_sim_data[i].ssd[key], label= filtered_sim_data[i].name, linewidth=1)
+    for k in range(len(keys)):
+        plt.figure(k)
+        plt.grid()
+        plt.legend()
+        plt.xlabel('Time [s]')
+        plt.ylabel(keys[k])
+        plt.title(keys[k])
+        plt.savefig("./DataProcessing/SimData/figs/" + "filtered_sim_ssd_" + keys[k] + ".png", dpi=fig_dpi)
+    plt.show()
 
     # Showing datat discontinuities --------------------------------------------
     plt.figure()
