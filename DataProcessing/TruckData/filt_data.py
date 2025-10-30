@@ -29,9 +29,8 @@ def rmLowTemprows(x):
     """Remove the rows with temperature less than T0.
         The commercial NOx sensor does not work bellow this temperature.
     """
-    delta = 1e-5
-    Tmin = 0 + delta    # 200 deg-C
-    Tmax = 16 - delta
+    Tmin = 0    # 200 deg-C
+    Tmax = 10   # 300 deg-C
     return np.delete(x,
                      [i for i in range(len(x))
                          if (x[i, 4]<Tmin or x[i, 4]>Tmax)],

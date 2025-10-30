@@ -8,7 +8,7 @@ dct = dd.load_decimated_test_data_set()
 fig_dpi = 300
 key = 'T'
 
-lines = (sh.switch_handle(sh.T_hl)).T_parts
+lines = (sh.switch_handle(sh.T_5)).T_parts
 ag_tst = [12, 15]
 # Plotting all the Data sets
 plt.figure()

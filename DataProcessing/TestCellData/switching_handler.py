@@ -5,6 +5,9 @@ T_narrow = [-17.5, (-17.45 -6.55)/2,  -6.55, (-6.55 + 2.4)/2, 2.4, (2.4 + 16)/2,
 T_wide = [-17.5, -6.55, 2.4, 16]
 T_none = [-17.5, 16]
 T_hl = [-18, -6.55, 21]
+T_5 = [-20, -15, -10, -5, 0, 5, 10, 15, 20, 25]
+T_10 = [30, -20,-10,  0, 10, 20, 30]
+T_15 = [30, -15,  0, 15,  30]
 
 class switch_handle:
     """ Class to handle switching based on temperature """
@@ -24,7 +27,7 @@ class switch_handle:
 
 
 if __name__ == '__main__':
-    sh = switch_handle(T_narrow)
+    sh = switch_handle(T_5)
     Ti = 8.95
     interval_num = sh.get_interval_T(Ti)
     print(interval_num)

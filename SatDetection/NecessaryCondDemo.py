@@ -1,5 +1,4 @@
 import numpy as np
-import cvxpy as cp
 from DataProcessing.SimData import filt_data
 from DataProcessing.SimData import unit_convs as uc
 from SatDetection import SatParmID as spd

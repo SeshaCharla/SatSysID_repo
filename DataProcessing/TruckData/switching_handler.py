@@ -1,7 +1,7 @@
 import numpy as np
 
 # Temperature Ranges
-T_none = [0, 16]
+T_none = [0, 10]
 
 class switch_handle:
     """ Class to handle switching based on temperature """
