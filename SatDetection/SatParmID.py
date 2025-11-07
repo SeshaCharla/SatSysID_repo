@@ -2,6 +2,8 @@
 import numpy as np
 import cvxpy as cp
 from scipy.optimize import lsq_linear, linprog
+from scipy.stats import gaussian_kde
+
 # ===========================================
 
 def PhiSat_mat(T, F, u1):
@@ -77,3 +79,15 @@ def Phi_alpha(T):
                 # PhiSat[i, :] = np.array([T[i], 1, 0])
         #===
         return PhiSat
+
+# =============================================================================================
+
+def get_weights_from_kde(pdf, T, F, u1, eta):
+        """ Returns the vector which would be the diagonal for the weight matrix for uniform sampling in the given temperature range"""
+        N = np.size(T)
+        w = np.array([1/(pdf([T[i], F[i], u1[i], eta[i]])) for i in range(N)])
+        return np.diag(w.flatten())
+# ===============================================================================================
+
+def T_filtered_indices(indices, T, T_min, T_max):
+        """ Returns the indices between T_min and T_max """
