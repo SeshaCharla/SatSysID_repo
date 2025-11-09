@@ -3,6 +3,8 @@ from DataProcessing.SimData import filt_data
 from DataProcessing.SimData import unit_convs as uc
 from SatDetection import SatParmID as spd
 import matplotlib.pyplot as plt
+from SatSysID import SatSysID_funcs as sf
+
 # ==============================================
 
 sim_data = filt_data.load_filtered_sim_data_set()
@@ -10,7 +12,9 @@ sim_data = filt_data.load_filtered_sim_data_set()
 
 thetas = np.zeros([3, 3])
 for i in range(3):
-        thetas[i,:] = spd.solve_LP(sim_data[i].ssd['eta'], sim_data[i].ssd['T'], sim_data[i].ssd['F'], sim_data[i].ssd['u1']).T
+        Phi = spd.PhiSat_mat(sim_data[i].ssd['T'], sim_data[i].ssd['F'], sim_data[i].ssd['u1'])
+        H = np.matrix(sim_data[i].ssd['eta']).T
+        thetas[i,:] = sf.solve_QP(Phi[0:-1,:], H[1:, :]).T
 
 labels = [r'Nominal urea dosing', r'$+20\%$ urea dosing', r'$-20\%$ urea dosing']
 # Plotting response
