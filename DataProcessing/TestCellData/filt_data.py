@@ -24,12 +24,32 @@ def rmNaNrows(x):
                          if np.any(np.isnan(x[i]))],
                      axis=0)
 
+# =============================================================================================
+def rmLowTemprows(x):
+    """Remove the rows with temperature less than T0.
+        The commercial NOx sensor does not work bellow this temperature.
+    """
+    Tmin = 0    # 200 deg-C
+    Tmax = 11   # 310 deg-C
+    return np.delete(x,
+                     [i for i in range(len(x))
+                         if (x[i, -3]<Tmin or x[i, -3]>Tmax)],
+                     axis=0)
+
 
 #===============================================================================================
 class FilteredTestData():
     """Class of filtered test data both ssd and iod"""
     #===========================================================================================
     def __init__(self, age: int, test_type: int):
+        # Data set names
+        self.hftp_set = ["dg_hftp", "dg_hftp_1", "dg_hftp_2", "dg_hftp_3",
+                         "aged_hftp", "aged_hftp_1", "aged_hftp_2", "aged_hftp_3", "aged_hftp_4"]
+        self.cftp_set = ["dg_cftp", "dg_cftp_1", "dg_cftp_2", "dg_cftp_3",
+                         "aged_cftp", "aged_cftp_1", "aged_cftp_2", "aged_cftp_3", "aged_cftp_4"]
+        self.rmc_set = ["dg_rmc", "dg_rmc_1", "dg_rmc_2", "dg_rmc_3",
+                         "aged_rmc", "aged_rmc_1", "aged_rmc_2", "aged_rmc_3", "aged_rmc_4"]
+        # =============
         self.rawData = rd.RawTestData(age, test_type)
         self.dt = self.rawData.dt
         self.name = self.rawData.name
@@ -47,7 +67,15 @@ class FilteredTestData():
                              self.rawData.raw['T'],
                              self.rawData.raw['F'],
                              self.rawData.raw['mu']]).T
+        # Removing non-usefull rows in the data
+        # Clearing first 275 sec of FTP data
+        if self.name in self.cftp_set + self.hftp_set:
+            print("clearing first 275 s of data in " + self.name + " data for ssd")
+            raw_tab = np.copy(raw_tab[int(275/self.dt):])
+            print("removing low-temperature data bellow 200 deg-C in " + self.name + " data for ssd")
+            raw_tab = rmLowTemprows(raw_tab)
         ssd_tab = rmNaNrows(raw_tab)
+        # ===
         ssd_mat = ssd_tab.T
         ssd = {}
         ssd['t'] = np.array(ssd_mat[0]).flatten()
@@ -79,15 +107,20 @@ class FilteredTestData():
                              self.rawData.raw['T'],
                              self.rawData.raw['F'],
                              self.rawData.raw['mu']]).T
-        iod_tab = rmNaNrows(raw_tab)
+        #===
+        # Removing non-usefull rows in the data
         # Clearing non-existant iod data, y1 doesn't work bellow a certain temperature
-        if self.name in ["dg_cftp", "dg_cftp_1", "dg_cftp_2", "dg_cftp_3", "aged_cftp", "aged_cftp_1", "aged_cftp_2", "aged_cftp_3", "aged_cftp_4"]:
-            print("clearing non-existant y1 in " + self.name + " data for iod")
-            iod_tab = np.copy(iod_tab[int(950/self.dt):])
-        elif self.name in ["dg_hftp", "dg_hftp_1", "dg_hftp_2", "dg_hftp_3", "aged_hftp", "aged_cftp_1", "aged_cftp_2", "aged_cftp_3", "aged_cftp_4"]:
-            print("clearing non-existant y1 in " + self.name + " data for iod")
-            iod_tab = np.copy(iod_tab[int(400/self.dt):int(600/self.dt)])
+        if self.name in self.cftp_set:
+            print("clearing non-existant y1 bellow 950s in " + self.name + " data for iod")
+            raw_tab = np.copy(raw_tab[int(950/self.dt):])
+        elif self.name in self.hftp_set:
+            print("clearing non-existant y1 bellow 275s in " + self.name + " data for iod")
+            raw_tab = np.copy(raw_tab[int(275/self.dt):])
             # The tail region is cross sensitive to tail-pipe ammonia in dg-hftp case
+            print("removing low-temperature data bellow 200 deg-C in " + self.name + " data for iod")
+            raw_tab = np.copy(rmLowTemprows(raw_tab))
+        iod_tab = rmNaNrows(raw_tab)
+        # ====
         iod_mat = iod_tab.T
         iod = {}
         iod['t'] = np.array(iod_mat[0]).flatten()
@@ -168,7 +201,7 @@ if __name__ == '__main__':
                 plt.xlabel('Time [s]')
                 plt.ylabel(key)
                 plt.title(test_data[i][j].name + "_ssd")
-                plt.savefig("figs/" + filtered_test_data[i][j].name + "_ssd_" + key + ".png", dpi=fig_dpi)
+                plt.savefig("./DataProcessing/TestCellData/figs/" + filtered_test_data[i][j].name + "_ssd_" + key + ".png", dpi=fig_dpi)
                 if key != 'none':
                     plt.close()
                 else:
@@ -185,7 +218,7 @@ if __name__ == '__main__':
                 plt.xlabel('Time [s]')
                 plt.ylabel(key)
                 plt.title(test_data[i][j].name + "_iod")
-                plt.savefig("figs/" + test_data[i][j].name + "_iod_" + key + ".png", dpi=fig_dpi)
+                plt.savefig("./DataProcessing/TestCellData/figs/" + test_data[i][j].name + "_iod_" + key + ".png", dpi=fig_dpi)
                 if key != 'none':
                     plt.close()
                 else:
@@ -204,24 +237,8 @@ if __name__ == '__main__':
     plt.xlabel('Index')
     plt.ylabel('Time [s]')
     plt.title('Time discontinuities in test Data')
-    plt.savefig("figs/time_discontinuities_test.png", dpi=fig_dpi)
+    plt.savefig("./DataProcessing/TestCellData/figs/time_discontinuities_test.png", dpi=fig_dpi)
     plt.close()
 
     # plt.show()
     plt.close('all')
-
-
-
-
-## Not useful stuff
-"""Remove the data from IOD tab where the temperature is less than 200 + y_Tmin deg C"""
-"""
-# ==================================================================================================================
-    def IOD_temp_exclusion(self, iod_tab):
-        y_Tmin = 20
-        return np.delete(iod_tab,
-                         [i for i in range(len(iod_tab))
-                                        if (self.rawData.raw['T'])[i]< y_Tmin],
-                         axis=0)
-
-"""

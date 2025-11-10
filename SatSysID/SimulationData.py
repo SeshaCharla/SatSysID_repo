@@ -3,36 +3,30 @@ from DataProcessing.SimData import filt_data
 from DataProcessing.SimData import unit_convs as uc
 import matplotlib.pyplot as plt
 from SatSysID import SatSysID_funcs as sf
+from SatSysID.SatSysID_methods import SatSys_ssd
 
 # =====================================================
-
-def pred_sat_response(theta, T, F, u1):
-        """ Predicted saturated systems response in time an returns array of eta_sat """
-        phi_sat = PhiSat_mat(T, F, u1)
-        eta_sat_hat = np.zeros(np.shape(T))
-        eta_sat_hat[1:] = (phi_sat[0:-1, :] @ theta).flatten()
-        eta_sat_hat[0] = eta_sat_hat[1]
-        return eta_sat_hat
-# ==============================================
 
 sim_data = filt_data.load_filtered_sim_data_set()
 # tst_data = decimate_data.load_decimated_test_data_set()
 
-thetas = np.zeros([3, 3])
-for i in range(3):
-        Phi = sf.PhiSat_mat(sim_data[i].ssd['T'], sim_data[i].ssd['F'], sim_data[i].ssd['u1'])
-        H = np.matrix(sim_data[i].ssd['eta']).T
-        thetas[i,:] = sf.solve_QP(Phi[0:-1,:], H[1:, :]).T
+ssd_satSys = [SatSys_ssd(sim_data[i].ssd, sim_data[i].name) for i in range(3)]
+
 
 labels = [r'Nominal urea dosing', r'$+20\%$ urea dosing', r'$-20\%$ urea dosing']
 # Plotting response
 for i in range(3):
         plt.figure(0)
-        plt.plot(sim_data[i].ssd['t'], sim_data[i].ssd['eta'], label=labels[i])
+        plt.plot(ssd_satSys[i].ssd['t'][1:], ssd_satSys[i].ssd['eta'][1:], label=labels[i], color='C'+str(i))
         plt.figure(1)
-        plt.plot(sim_data[i].ssd['t'], pred_sat_response(np.matrix(thetas[i,:]).T, sim_data[i].ssd['T'],
-                                                             sim_data[i].ssd['F'], sim_data[i].ssd['u1']) ,
-                 label=labels[i])
+        plt.plot(ssd_satSys[i].ssd['t'][1:], ssd_satSys[i].eta_hat, label=labels[i])
+        plt.fill_between(ssd_satSys[i].ssd['t'][1:],
+                         ssd_satSys[i].eta_hat-2*ssd_satSys[i].sigma_eta,
+                         ssd_satSys[i].eta_hat+2*ssd_satSys[i].sigma_eta,
+                         label=labels[i]+r' $\pm 2\sigma$',
+                         color='C'+str(i),
+                         alpha=0.2)
+
 plt.figure(0)
 plt.grid()
 plt.legend()

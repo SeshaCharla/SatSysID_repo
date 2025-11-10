@@ -6,6 +6,8 @@ def calc_eta(x1, u1):
     eta = np.zeros(n)
     for i in range(1, n):
         eta[i] = u1[i-1] - x1[i]
+        if eta[i] < 0:
+            eta[i] = 0
     eta[0] = eta[1]
     return eta
 
