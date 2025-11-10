@@ -70,9 +70,9 @@ class FilteredTestData():
         # Removing non-usefull rows in the data
         # Clearing first 275 sec of FTP data
         if self.name in self.cftp_set + self.hftp_set:
-            print("clearing first 275 s of data in " + self.name + " data for ssd")
+            # print("clearing first 275 s of data in " + self.name + " data for ssd")
             raw_tab = np.copy(raw_tab[int(275/self.dt):])
-            print("removing low-temperature data bellow 200 deg-C in " + self.name + " data for ssd")
+            # print("removing low-temperature data bellow 200 deg-C in " + self.name + " data for ssd")
             raw_tab = rmLowTemprows(raw_tab)
         ssd_tab = rmNaNrows(raw_tab)
         # ===
@@ -111,14 +111,14 @@ class FilteredTestData():
         # Removing non-usefull rows in the data
         # Clearing non-existant iod data, y1 doesn't work bellow a certain temperature
         if self.name in self.cftp_set:
-            print("clearing non-existant y1 bellow 950s in " + self.name + " data for iod")
+            # print("clearing non-existant y1 bellow 950s in " + self.name + " data for iod")
             raw_tab = np.copy(raw_tab[int(950/self.dt):])
         elif self.name in self.hftp_set:
-            print("clearing non-existant y1 bellow 275s in " + self.name + " data for iod")
+            # print("clearing non-existant y1 bellow 275s in " + self.name + " data for iod")
             raw_tab = np.copy(raw_tab[int(275/self.dt):])
             # The tail region is cross sensitive to tail-pipe ammonia in dg-hftp case
-            print("removing low-temperature data bellow 200 deg-C in " + self.name + " data for iod")
-            raw_tab = np.copy(rmLowTemprows(raw_tab))
+            # print("removing low-temperature data bellow 200 deg-C in " + self.name + " data for iod")
+            raw_tab = rmLowTemprows(raw_tab)
         iod_tab = rmNaNrows(raw_tab)
         # ====
         iod_mat = iod_tab.T
