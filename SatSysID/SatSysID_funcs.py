@@ -4,25 +4,50 @@ from scipy.stats import halfnorm, goodness_of_fit, gaussian_kde
 
 # ==============================================================================
 
-def solve_QP(Phi:np.ndarray, H:np.ndarray, W:np.ndarray, verbose=False):
+def solve_QP(Phi:np.ndarray, H:np.ndarray, verbose=False):
         """ Solve the quadratic programming problem with Phi and H """
-        P = 2 * Phi.T @ (W.T @ W) @ Phi
-        q = 2 * (H.T @ (W.T @ W) @ Phi).T
+        P = 2 * Phi.T @ Phi
+        q = 2 * (H.T @ Phi).T
         h = np.vstack([-H, np.zeros([3, 1])])
-        parm_signs = np.zeros([3,3])
-        parm_signs[0, 0] = 1
-        parm_signs[2, 2] = -1
-        G = np.vstack([-Phi, parm_signs])
+        parm_signs = np.eye(3)
+        parm_signs[0, 0] = -1
+        G = np.vstack([-Phi, -parm_signs])
         # ===
         # Convex optimization problem
         theta = cp.Variable([3, 1])
-        objective = cp.Minimize( (1/2)*cp.quad_form(theta, P) + q.T @ theta )
+        objective = cp.Minimize( (1/2)*cp.quad_form(theta, P) - q.T @ theta )
         constraints = [G @ theta <= h]
         prob = cp.Problem(objective=objective, constraints=constraints)
-        prob.solve(solver='MOSEK', verbose=verbose)
+        # Convex optimization problem
+        # theta = cp.Variable([3, 1])
+        # objective = cp.Minimize(cp.sum_squares(Phi@theta-H))
+        # constraints = [Phi@theta >= H,
+        #                theta[0, 0] <= 0,
+        #                theta[1, 0] >= 0,
+        #                theta[2, 0] >= 0]
+        # prob = cp.Problem(objective=objective, constraints=constraints)
+        prob.solve(solver='MOSEK', verbose=verbose) #,
         #===
         # Solution
         return theta.value
+
+# ==============================================================================
+
+def solve_LP(Phi:np.ndarray, H:np.ndarray, verbose=False):
+        """ Solve the quadratic programming problem with Phi and H """
+        # Convex optimization problem
+        theta = cp.Variable([3, 1])
+        objective = cp.Minimize(cp.sum(Phi@theta))
+        constraints = [Phi@theta >= H,
+                       theta[0, 0] <= 0,
+                       theta[1, 0] >= 0,
+                       theta[2, 0] >= 0]
+        prob = cp.Problem(objective=objective, constraints=constraints)
+        prob.solve(solver="MOSEK", verbose=verbose) #solver='MOSEK',
+        #===
+        # Solution
+        return theta.value
+
 
 # ==============================================================================
 
@@ -40,16 +65,6 @@ def PhiSat_mat(T, F, u1):
 
 # ==============================================================================
 
-def pred_sat_response(theta, phi_sat):
-        """ Predicted saturated systems response in time an returns array of eta_sat """
-        rows, cols = np.shape(phi_sat)
-        eta_sat_hat = np.zeros([rows,])
-        eta_sat_hat[1:] = (phi_sat[0:-1, :] @ theta).flatten()
-        eta_sat_hat[0] = eta_sat_hat[1]
-        return eta_sat_hat
-
-# =========================================================================================
-
 def scale2lambda(scale:float):
         """ Converts the scale parameter to lambda """
         return np.sqrt(np.pi/2)/(scale)
@@ -65,10 +80,12 @@ def fit_dist(eps:np.ndarray, eps_max:float=8):
 
 # ===============================================================================================
 
-def W_kde(eta:np.ndarray, u1:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
-        """ Returns the diagonal weight matrix for uniform sampling in the given state/input range"""
-        pdf = gaussian_kde([eta, u1, u2, T, F])
-        N = np.size(T)
-        w = np.array([1/(pdf([eta[i], u1[i], u2[i], T[i], F[i]])) for i in range(N)])
-        w = w/np.sum(w)
-        return np.diag(w.flatten())
+# Not Using This
+# def W_kde(eta:np.ndarray, u1:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
+#         """ Returns the diagonal weight matrix for uniform sampling in the given state/input range"""
+#         pdf = gaussian_kde([eta, u1, u2, T, F])
+#         N = np.size(T)
+#         w = np.array([1/(pdf([eta[i], u1[i], u2[i], T[i], F[i]])) for i in range(N)])
+#         w = w/np.sum(w)
+#         return np.diag(w.flatten())
+#

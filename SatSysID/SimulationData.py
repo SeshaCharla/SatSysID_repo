@@ -21,10 +21,10 @@ for i in range(3):
         plt.figure(0)
         plt.plot(ssd_satSys[i].ssd['t'][1:], ssd_satSys[i].ssd['eta'][1:], label=labels[i], color='C'+str(i))
         plt.figure(1)
-        plt.plot(ssd_satSys[i].ssd['t'][1:], ssd_satSys[i].eta_pred, label=labels[i]+r'$\pm 2\sigma$')
+        plt.plot(ssd_satSys[i].ssd['t'][1:], ssd_satSys[i].eta_pred, label=labels[i]+r'$\pm \sigma$')
         plt.fill_between(ssd_satSys[i].ssd['t'][1:],
-                         ssd_satSys[i].eta_pred-2*ssd_satSys[i].sigma_pred,
-                         ssd_satSys[i].eta_pred+2*ssd_satSys[i].sigma_pred,
+                         ssd_satSys[i].eta_pred-ssd_satSys[i].sigma_pred,
+                         ssd_satSys[i].eta_pred+ssd_satSys[i].sigma_pred,
                          label=None,
                          color='C'+str(i),
                          alpha=0.2)
