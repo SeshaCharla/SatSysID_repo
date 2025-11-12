@@ -69,7 +69,10 @@ class FilteredTestData():
                              self.rawData.raw['mu']]).T
         # Removing non-usefull rows in the data
         # Clearing first 275 sec of FTP data
-        if self.name in self.cftp_set + self.hftp_set:
+        if self.name in self.cftp_set:
+            # print("clearing non-existant y1 bellow 950s in " + self.name + " data for iod")
+            raw_tab = np.copy(raw_tab[int(950/self.dt):])
+        if self.name in self.hftp_set:
             # print("clearing first 275 s of data in " + self.name + " data for ssd")
             raw_tab = np.copy(raw_tab[int(275/self.dt):])
             # print("removing low-temperature data bellow 200 deg-C in " + self.name + " data for ssd")

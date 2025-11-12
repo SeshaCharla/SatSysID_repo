@@ -19,9 +19,9 @@ class SatSys_ssd:
                 self.hfn_fit = sf.fit_dist( self.eps, eps_max= np.max(self.eps)/4)
                 self.hfn_lambda = sf.scale2lambda(self.hfn_fit.fit_result.params[1])
                 self.var_eps = self.hfn_fit.fit_result.params[1]**2 * (1 - 2/np.pi)
-                self.C_theta = np.linalg.inv( (2*self.hfn_lambda**2/np.pi)*
-                                              (self.Phi[1: :].T @ self.Phi[1:, :])
-                                             )
+                self.exp_eps = 1/self.hfn_lambda
+                self.I_theta = (2*self.hfn_lambda**2/np.pi)* (self.Phi[1: :].T @ self.Phi[1:, :])
+                self.C_theta = np.linalg.inv(self.I_theta)
                 self.sigma_eta = np.sqrt( np.array( [ (self.Phi[j,:]@ self.C_theta @ self.Phi[j,:].T)
                                                         for j in range(np.shape(self.Phi)[0]-1) ] ))
                 # self.temp_var()
@@ -46,3 +46,11 @@ class SatSys_ssd:
                 self.gamma_max = (Phi @ self.theta).flatten()
                 self.sigma_gamma_max = np.sqrt( np.array( [ (Phi[j,:] @ self.C_theta @  Phi[j,:].T)[0,0]
                                                         for j in range(N) ] ))
+
+        # ===================================================================================================
+
+        def calc_Tw(self, theta_ref):
+                """ Calculates the wald test's test-statistic given theta_ref """
+                theta_diff = (self.theta - theta_ref)
+                Tw = (theta_diff.T @ self.I_theta @ theta_diff)[0,0]
+                return Tw
