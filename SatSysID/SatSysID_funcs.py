@@ -1,6 +1,6 @@
 import numpy as np
 import cvxpy as cp
-from scipy.stats import halfnorm, goodness_of_fit, gaussian_kde
+from scipy.stats import halfnorm, goodness_of_fit
 
 # ==============================================================================
 

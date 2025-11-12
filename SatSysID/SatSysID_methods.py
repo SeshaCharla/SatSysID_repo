@@ -16,7 +16,7 @@ class SatSys_ssd:
                 self.eta_hat = (self.Phi[0:-1, :] @ self.theta).flatten()
                 self.eps = (self.eta_hat - self.ssd['eta'][1:])
                 # Fitting distribution
-                self.hfn_fit = sf.fit_dist( self.eps, eps_max= np.max(self.H[1:,:]) )
+                self.hfn_fit = sf.fit_dist( self.eps, eps_max= np.max(self.eps)/4)
                 self.hfn_lambda = sf.scale2lambda(self.hfn_fit.fit_result.params[1])
                 self.var_eps = self.hfn_fit.fit_result.params[1]**2 * (1 - 2/np.pi)
                 self.C_theta = np.linalg.inv( (2*self.hfn_lambda**2/np.pi)*
