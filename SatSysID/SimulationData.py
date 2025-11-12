@@ -21,10 +21,10 @@ for i in range(3):
         plt.figure(0)
         plt.plot(ssd_satSys[i].ssd['t'][1:], ssd_satSys[i].ssd['eta'][1:], label=labels[i], color='C'+str(i))
         plt.figure(1)
-        plt.plot(ssd_satSys[i].ssd['t'][1:], ssd_satSys[i].eta_pred, label=labels[i]+r'$\pm \sigma$')
+        plt.plot(ssd_satSys[i].ssd['t'][1:], ssd_satSys[i].eta_pred, label=labels[i]+r' $\pm 3\sigma$')
         plt.fill_between(ssd_satSys[i].ssd['t'][1:],
-                         ssd_satSys[i].eta_pred-ssd_satSys[i].sigma_pred,
-                         ssd_satSys[i].eta_pred+ssd_satSys[i].sigma_pred,
+                         ssd_satSys[i].eta_pred-3*ssd_satSys[i].sigma_pred,
+                         ssd_satSys[i].eta_pred+3*ssd_satSys[i].sigma_pred,
                          label=None,
                          color='C'+str(i),
                          alpha=0.2)
@@ -35,13 +35,13 @@ plt.legend()
 plt.ylabel(r'$\eta$ '+uc.units['eta'])
 plt.xlabel("Time [s]")
 # plt.title(r'RMC Test $NO_x$ Reduction with $\pm 20$ Urea Dosing Gain Variation')
-plt.savefig("./SatSysID/figs/eta_sim.eps")
+plt.savefig("./SatSysID/figs/eta_sim.png", dpi=300)
 plt.figure(1)
 plt.grid()
 plt.legend()
 plt.ylabel(r'$\eta_{sat}$ '+uc.units['eta'])
 plt.xlabel("Time [s]")
 # plt.title(r'Predicted $NO_x$ Reducion Under Catalyst Saturation')
-plt.savefig("./SatSysID/figs/eta_sat.eps")
+plt.savefig("./SatSysID/figs/eta_sat.png", dpi=300)
 
 plt.show()
