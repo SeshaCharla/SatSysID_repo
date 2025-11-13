@@ -29,7 +29,7 @@ def rmLowTemprows(x):
     """Remove the rows with temperature less than T0.
         The commercial NOx sensor does not work bellow this temperature.
     """
-    Tmin = 0    # 200 deg-C
+    Tmin = 0   # 200 deg-C
     Tmax = 10   # 300 deg-C
     return np.delete(x,
                      [i for i in range(len(x))
@@ -126,8 +126,8 @@ if __name__ == '__main__':
             for key in ['u1', 'u2', 'T', 'F', 'y1', 'eta']:
                 plt.figure()
                 if (key != 'eta'):
-                    plt.plot(test_data[i][j].raw['t'], test_data[i][j].raw[key], '--', label=key, linewidth=1, color='tab:blue')
-                plot_TD(plt.gca(), filtered_test_data[i][j].iod['t'], filtered_test_data[i][j].iod[key],
+                    plt.plot(test_data[i][j].raw['t']/3600, test_data[i][j].raw[key], '--', label=key, linewidth=1, color='tab:blue')
+                plot_TD(plt.gca(), filtered_test_data[i][j].iod['t']/3600, filtered_test_data[i][j].iod[key],
                                     filtered_test_data[i][j].iod['t_skips'], label=key + "_filtered")
                 plt.grid()
                 plt.legend()
@@ -135,7 +135,7 @@ if __name__ == '__main__':
                 plt.ylabel(key + uc.units[key])
                 plt.title(test_data[i][j].name + "_iod")
                 plt.savefig("./DataProcessing/TruckData/figs/" + test_data[i][j].name + "_iod_" + key + ".png", dpi=fig_dpi)
-                plt.close()
+                plt.show()
 
     # Showing datat discontinuities --------------------------------------------
     plt.figure()
@@ -151,5 +151,4 @@ if __name__ == '__main__':
     plt.savefig("./DataProcessing/TruckData/figs/"+"time_discontinuities_test.png", dpi=fig_dpi)
     plt.close()
 
-    # plt.show()
-    plt.close('all')
+    # plt.close('all')
