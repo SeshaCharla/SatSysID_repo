@@ -86,7 +86,7 @@ class RawTruckData():
         data = loadmat(self.dat_file)
         raw = dict()
         # Assigning the Data to the variables
-        Tscr = np.array(data['pSCRBedTemp']).flatten()
+        Tscr = np.array(data['pSCRBedTemp']).flatten() # 'V_ATP_TRC_SCR_T1'
         raw['t'] = np.array(data['tod']).flatten()
         raw['F'] = uc.uConv(np.array(data['pExhMF']).flatten(), Tscr=Tscr, conv_type="g/s to [x 10 g/s]")                                     # g/sec
         raw['T'] = uc.uConv(Tscr, Tscr=Tscr, conv_type="deg-C to [x 10 + 200 deg C]")
