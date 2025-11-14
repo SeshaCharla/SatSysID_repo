@@ -47,6 +47,18 @@ class DriveCycle():
 
         # ===================================================
 
+        def sort_drive_cycles(self, drive_cycles_unsorted):
+                """ Sorts the drive cycles to get the longest one at 0 """
+                drive_cycle_lens = np.array([drive_cycles_unsorted[str(i)]['data_len'] for i in range(self.N_dc)])
+                sorted_indices = np.argsort(drive_cycle_lens)
+                drive_cycles = dict()
+                for i in range(self.N_dc):
+                        drive_cycles[str(i)] = drive_cycles_unsorted[str(sorted_indices[-i-1])]
+                return drive_cycles
+
+
+        # ====================================================================
+
         def get_drive_cycle_data(self, j):
                 """ returns the iod data for the ith drive cycle """
                 ssd = dict()
@@ -60,16 +72,20 @@ class DriveCycle():
 
         def gen_drive_cycles(self):
                 """ Returns the drive cycles dictionary with all the contiguous filtered data """
-                N = len(self.iod['drive_cycles'])-1
-                drive_cycles = dict()
-                for j in range(N):
+                self.N_dc = len(self.iod['drive_cycles'])-1
+                drive_cycles_unsorted = dict()
+                for j in range(self.N_dc):
                         data = self.get_drive_cycle_data(j)
                         ssd = dict()
                         ssd['t'] = np.arange(np.min(data['t']), np.max(data['t']))
+                        ssd['data_len'] = len(ssd['t'])
                         for key in ['y1', 'u1', 'u2', 'T', 'F']:
                                 interp_data = np.interp(ssd['t'], data['t'], data[key])
                                 ssd[key] = sig.sosfiltfilt(drive_cycle_filt, interp_data)
-
+                        ssd = set_datum(ssd)
+                        ssd['eta'] = etaCalc.calc_eta(ssd['y1'], ssd['u1'])
+                        drive_cycles_unsorted[str(j)] = ssd
+                return self.sort_drive_cycles(drive_cycles_unsorted)
 
         # ===========================================================================================
 
@@ -93,19 +109,36 @@ class DriveCycle():
                 # Find the time discontinuities in IOD Data
                 iod['drive_cycles'] = find_drive_cycles(iod['t'])
                 # Set datum for the data
-                iod = self.set_datum(iod, type='iod')
+                iod = set_datum(iod)
                 return iod
 
-        #========================================================
+# =======================================================================================================
 
-        def set_datum(self, ssd):
-                """Set the minimum values in data sets"""
-                datum = {}
-                datum['u1'] = 0.2     # Most of the testcell data shows this
-                datum['u2'] = 0
-                datum['F'] = 3     # From all the test cell data
-                datum['y1'] = 0
-                keys = ['y1', 'u1', 'u2', 'F']
-                for key in keys:
-                        ssd[key] = np.array([val if val >= datum[key] else datum[key] for val in ssd[key]])
-                return ssd
+def set_datum(ssd):
+        """Set the minimum values in data sets"""
+        datum = {}
+        datum['u1'] = 0.2     # Most of the testcell data shows this
+        datum['u2'] = 0
+        datum['F'] = 3     # From all the test cell data
+        datum['y1'] = 0
+        keys = ['y1', 'u1', 'u2', 'F']
+        for key in keys:
+                ssd[key] = np.array([val if val >= datum[key] else datum[key] for val in ssd[key]])
+        return ssd
+
+# ======================================================================================================================
+
+if __name__ == "__main__":
+        import matplotlib.pyplot as plt
+
+        mes_15 = DriveCycle(1, 2)
+        plt.figure()
+        plt.plot(mes_15.iod['t'], mes_15.iod['u1'])
+        [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)]['u1'], label="drive_cycle_"+str(j)) for j in range(mes_15.N_dc)]
+        plt.legend()
+        plt.grid()
+        plt.show()
+
+        plt.figure()
+        [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)]['eta']) for j in range(mes_15.N_dc)]
+        plt.show()
