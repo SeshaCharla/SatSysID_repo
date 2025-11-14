@@ -131,15 +131,15 @@ def set_datum(ssd):
 
 if __name__ == "__main__":
         import matplotlib.pyplot as plt
+        from DataProcessing.TruckData import filt_data
+        from DataProcessing.TruckData import plotting as pt
 
         mes_15 = DriveCycle(1, 2, gap=60)
+        mes_15_filt = filt_data.FilteredTruckData(1, 2)
+
         plt.figure()
-        plt.plot(mes_15.iod['t'], mes_15.iod['u1'])
+        pt.plot_TD(mes_15_filt.iod['t'], mes_15_filt.iod['u1'])
         [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)]['u1'], label="drive_cycle_"+str(j)) for j in range(mes_15.N_dc)]
         plt.legend()
         plt.grid()
-        plt.show()
-
-        plt.figure()
-        [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)]['eta']) for j in range(mes_15.N_dc)]
         plt.show()
