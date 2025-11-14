@@ -8,7 +8,7 @@ from DataProcessing.TruckData.sosFiltering import drive_cycle_filt
 # Array Manipulating functions ------------------------------------------------------
 #==============================================================================================
 
-def find_drive_cycles(t, gap=60):      # 10 min gap
+def find_drive_cycles(t, gap: int =60):      # 1 min gap
         """Find the discontinuities in the time Data
         The slices would be: [ [t_skips[0], t_skips[1]], [t_skips[1], t_skips[2]],... [t_skips[n-1], t_skips[n]] ]
         """
@@ -38,13 +38,13 @@ def rmLowTemprows(x):
 class DriveCycle():
         """ Class dividing the truck data into individual drive cycles and linearly interpolating missing data """
         #===========================================================================================
-        def __init__(self, age: int, test_type: int, gap=60):
+        def __init__(self, age: int, test_type: int, gap: int =60):
                 self.rawData = rd.RawTruckData(age, test_type)
+                self.gap = gap
                 self.dt = 1
                 self.name = self.rawData.name
                 self.iod = self.gen_iod()
                 self.drive_cycles = self.gen_drive_cycles()
-                self.gap = gap
 
         # ===================================================
 
@@ -137,9 +137,12 @@ if __name__ == "__main__":
         mes_15 = DriveCycle(1, 2, gap=60)
         mes_15_filt = filt_data.FilteredTruckData(1, 2)
 
-        plt.figure()
-        pt.plot_TD(mes_15_filt.iod['t'], mes_15_filt.iod['u1'])
-        [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)]['u1'], label="drive_cycle_"+str(j)) for j in range(mes_15.N_dc)]
-        plt.legend()
-        plt.grid()
-        plt.show()
+        def plot_state(y :str):
+                plt.figure()
+                pt.plot_TD(plt.gca(), mes_15_filt.iod['t'], mes_15_filt.iod[y], mes_15_filt.iod['t_skips'])
+                [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)][y], label="drive_cycle_"+str(j)) for j in range(mes_15.N_dc)]
+                plt.legend()
+                plt.grid()
+                plt.show()
+
+        plot_state('eta')
