@@ -8,7 +8,7 @@ from DataProcessing.TruckData.sosFiltering import drive_cycle_filt
 # Array Manipulating functions ------------------------------------------------------
 #==============================================================================================
 
-def find_drive_cycles(t, gap=600):      # 10 min gap
+def find_drive_cycles(t, gap=60):      # 10 min gap
         """Find the discontinuities in the time Data
         The slices would be: [ [t_skips[0], t_skips[1]], [t_skips[1], t_skips[2]],... [t_skips[n-1], t_skips[n]] ]
         """
@@ -38,12 +38,13 @@ def rmLowTemprows(x):
 class DriveCycle():
         """ Class dividing the truck data into individual drive cycles and linearly interpolating missing data """
         #===========================================================================================
-        def __init__(self, age: int, test_type: int):
+        def __init__(self, age: int, test_type: int, gap=60):
                 self.rawData = rd.RawTruckData(age, test_type)
                 self.dt = 1
                 self.name = self.rawData.name
                 self.iod = self.gen_iod()
                 self.drive_cycles = self.gen_drive_cycles()
+                self.gap = gap
 
         # ===================================================
 
@@ -107,7 +108,7 @@ class DriveCycle():
                 iod['T'] = np.array(iod_mat[4]).flatten()
                 iod['F'] = np.array(iod_mat[5]).flatten()
                 # Find the time discontinuities in IOD Data
-                iod['drive_cycles'] = find_drive_cycles(iod['t'])
+                iod['drive_cycles'] = find_drive_cycles(iod['t'], gap=self.gap)
                 # Set datum for the data
                 iod = set_datum(iod)
                 return iod
@@ -131,7 +132,7 @@ def set_datum(ssd):
 if __name__ == "__main__":
         import matplotlib.pyplot as plt
 
-        mes_15 = DriveCycle(1, 2)
+        mes_15 = DriveCycle(1, 2, gap=60)
         plt.figure()
         plt.plot(mes_15.iod['t'], mes_15.iod['u1'])
         [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)]['u1'], label="drive_cycle_"+str(j)) for j in range(mes_15.N_dc)]
