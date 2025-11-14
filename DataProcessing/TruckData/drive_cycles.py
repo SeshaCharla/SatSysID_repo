@@ -129,6 +129,15 @@ def set_datum(ssd):
 
 # ======================================================================================================================
 
+def load_truck_data_drive_cycles(gap :int = 60):
+    # Load the test Data
+    ag_tsts = [4, 4]
+    drive_cycle_data = [[DriveCycle(age, tst, gap) for tst in range(ag_tsts[age])] for age in range(2)]
+    return drive_cycle_data
+
+
+# ======================================================================================================================
+
 if __name__ == "__main__":
         import matplotlib.pyplot as plt
         from DataProcessing.TruckData import filt_data
