@@ -2,8 +2,8 @@ import numpy as np
 from DataProcessing.TruckData import rdRawDat as rd
 from DataProcessing.TruckData import etaCalc
 import scipy.signal as sig
+from DataProcessing.TruckData.sosFiltering import drive_cycle_filt
 
-drive_cycle_filt = sig.cheby2(7,40,  0.1, 'lowpass', analog=False, fs=1, output='sos')
 
 # Array Manipulating functions ------------------------------------------------------
 #==============================================================================================
@@ -40,7 +40,7 @@ class DriveCycle():
         #===========================================================================================
         def __init__(self, age: int, test_type: int):
                 self.rawData = rd.RawTruckData(age, test_type)
-                self.dt = self.rawData.dt
+                self.dt = 1
                 self.name = self.rawData.name
                 self.iod = self.gen_iod()
                 self.drive_cycles = self.gen_drive_cycles()
@@ -52,22 +52,23 @@ class DriveCycle():
                 ssd = dict()
                 i_min = self.iod['drive_cycles'][j]
                 i_max = self.iod["drive_cycles"][j+1]
-                ssd['t'] = self.iod['t'][i_min:i_max]
-                ssd['y1'] = self.iod["y1"][i_min:i_max]
-                ssd['u1'] = self.iod['u1'][i_min:i_max]
-                ssd['u2'] = self.iod['u2'][i_min:i_max]
+                for key in ['t', 'y1', 'u1', 'u2', 'T', 'F']:
+                        ssd[key] = self.iod[key][i_min:i_max]
+                return ssd
 
-
+        # =======================================================================
 
         def gen_drive_cycles(self):
                 """ Returns the drive cycles dictionary with all the contiguous filtered data """
                 N = len(self.iod['drive_cycles'])-1
                 drive_cycles = dict()
                 for j in range(N):
-                        t = self.iod['t'][self.iod['drive_cycles'][i]:self.iod["drive_cycles"][i+1]]
+                        data = self.get_drive_cycle_data(j)
                         ssd = dict()
-                        ssd['t'] = np.arange(np.min(self.iod['t']), np.max(self.iod['t']))
-                        ssd['y1'] = np.interp
+                        ssd['t'] = np.arange(np.min(data['t']), np.max(data['t']))
+                        for key in ['y1', 'u1', 'u2', 'T', 'F']:
+                                interp_data = np.interp(ssd['t'], data['t'], data[key])
+                                ssd[key] = sig.sosfiltfilt(drive_cycle_filt, interp_data)
 
 
         # ===========================================================================================
