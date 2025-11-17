@@ -4,14 +4,14 @@ from scipy.stats import halfnorm, goodness_of_fit, gaussian_kde
 
 # ==============================================================================
 
-def solve_QP(Phi:np.ndarray, H:np.ndarray, W2:np.ndarray, verbose=False):
+def solve_QP(Phi:np.ndarray, H:np.ndarray, W:np.ndarray, verbose=False):
         """ Solve the quadratic programming problem with Phi and H """
-        P = 2 * Phi.T @ (W2) @ Phi
-        q = 2 * (H.T @ (W2) @ Phi).T
-        h = -H # np.vstack([-H, np.zeros([3, 1])])
-        # parm_signs = np.eye(3)
-        # parm_signs[0, 0] = -1
-        G = -Phi #np.vstack([-Phi, -parm_signs])
+        P = 2 * Phi.T @ (W**2) @ Phi
+        q = 2 * (H.T @ (W**2) @ Phi).T
+        h = np.vstack([-H, np.zeros([3, 1])])
+        parm_signs = np.eye(3)
+        parm_signs[0, 0] = -1
+        G = np.vstack([-Phi, -parm_signs])
         # ===
         # Convex optimization problem
         theta = cp.Variable([3, 1])
@@ -33,11 +33,11 @@ def solve_QP(Phi:np.ndarray, H:np.ndarray, W2:np.ndarray, verbose=False):
 
 # ==============================================================================
 
-def solve_LP(Phi:np.ndarray, H:np.ndarray, verbose=False):
+def solve_LP(Phi:np.ndarray, H:np.ndarray, W:np.ndarray, verbose=False):
         """ Solve the quadratic programming problem with Phi and H """
         # Convex optimization problem
         theta = cp.Variable([3, 1])
-        objective = cp.Minimize(cp.sum(Phi@theta))
+        objective = cp.Minimize(cp.sum(W@Phi@theta))
         constraints = [Phi@theta >= H,
                        theta[0, 0] <= 0,
                        theta[1, 0] >= 0,
@@ -91,10 +91,10 @@ def Fisher_Information(lmbd:float, Phi:np.ndarray, indices:np.ndarray)->np.ndarr
 
 # ==============================================================================================
 
-def W2_kde(eta:np.ndarray, u1:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
+def W_kde(eta:np.ndarray, u1:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
         """ Returns the diagonal weight matrix square for uniform sampling in the given state/input range"""
         pdf = gaussian_kde([eta, u1, u2, T, F])
         N = np.size(T)
         w = np.array([1/(pdf([eta[i], u1[i], u2[i], T[i], F[i]])) for i in range(N)])
-        w2 = (w/np.sum(w))**2
-        return np.diag(w2.flatten())
+        w_norm = w/np.sum(w)
+        return np.diag(w_norm.flatten())
