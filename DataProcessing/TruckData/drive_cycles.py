@@ -125,7 +125,7 @@ def set_datum(ssd):
         """Set the minimum values in data sets"""
         datum = {}
         datum['u1'] = 0.2     # Most of the testcell data shows this
-        datum['u2'] = 0
+        datum['u2'] = 0.1
         datum['F'] = 3     # From all the test cell data
         datum['y1'] = 0
         keys = ['y1', 'u1', 'u2', 'F']

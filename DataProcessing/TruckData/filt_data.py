@@ -82,7 +82,7 @@ class FilteredTruckData():
         datum['x1'] = 0
         datum['x2'] = 0
         datum['u1'] = 0.2     # Most of the testcell data shows this
-        datum['u2'] = 0
+        datum['u2'] = 0.1
         datum['F'] = 3     # From all the test cell data
         datum['y1'] = 0
         ssd_keys = ['x1', 'x2', 'u1', 'u2', 'F']

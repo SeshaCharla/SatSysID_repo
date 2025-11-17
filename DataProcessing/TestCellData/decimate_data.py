@@ -93,6 +93,8 @@ if __name__ == '__main__':
                 plt.savefig("./DataProcessing/TestCellData/figs/" + dct[i][j].name + "_ssd_" + key + ".png", dpi=fig_dpi)
                 if key != show_plot:
                     plt.close()
+                else:
+                    plt.show()
 
             for key in ['u1', 'u2', 'T', 'F', 'y1', 'eta', 'mu']:
                 plt.figure()
@@ -110,6 +112,8 @@ if __name__ == '__main__':
                 plt.savefig("./DataProcessing/TestCellData/figs/" + dct[i][j].name + "_iod_" + key + ".png", dpi=fig_dpi)
                 if key != show_plot:
                     plt.close()
+                else:
+                    plt.show()
 
     # Showing datat discontinuities --------------------------------------------
     plt.figure()
@@ -128,4 +132,4 @@ if __name__ == '__main__':
     plt.close()
 
     # plt.show()
-    plt.close('all')
+    # plt.close('all')

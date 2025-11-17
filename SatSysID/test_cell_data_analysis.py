@@ -6,7 +6,7 @@ from SatSysID import SatSysID_funcs as sf
 from SatSysID.SatSysID_methods import SatSys_ssd
 
 # =====================================================
-j = 1
+j = 2
 set_names = ['cftp', 'hftp', 'rmc']
 data_set = set_names[j]
 dat = [dd.decimatedTestData(0, j+3*i) for i in range(1,4)] + [dd.decimatedTestData(1, j+3*i) for i in range(1)]

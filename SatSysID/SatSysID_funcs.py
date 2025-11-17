@@ -33,15 +33,15 @@ def solve_QP(Phi:np.ndarray, H:np.ndarray, W:np.ndarray, verbose=False):
 
 # ==============================================================================
 
-def solve_LP(Phi:np.ndarray, H:np.ndarray, W:np.ndarray, verbose=False):
+def solve_LP(Phi:np.ndarray, H:np.ndarray, verbose=False):
         """ Solve the quadratic programming problem with Phi and H """
         # Convex optimization problem
         theta = cp.Variable([3, 1])
-        objective = cp.Minimize(cp.sum(W@Phi@theta))
-        constraints = [Phi@theta >= H,
-                       theta[0, 0] <= 0,
-                       theta[1, 0] >= 0,
-                       theta[2, 0] >= 0]
+        objective = cp.Minimize(cp.sum(Phi@theta))
+        constraints = [Phi@theta >= H]
+                #        theta[0, 0] <= 0,
+                #        theta[1, 0] >= 0,
+                #        theta[2, 0] >= 0]
         prob = cp.Problem(objective=objective, constraints=constraints)
         prob.solve(solver="MOSEK", verbose=verbose) #solver='MOSEK',
         #===
@@ -59,7 +59,7 @@ def PhiSat_mat(T, F, u1):
         PhiSat = np.zeros([N, 3])
         # Looping
         for i in range(N):
-                PhiSat[i, :] = (u1[i]/F[i]) * np.array([T[i]**2, T[i], 1])
+                PhiSat[i, :] = (u1[i]/F[i]**2) * np.array([T[i]**2, T[i], 1])
         #===
         return PhiSat
 
