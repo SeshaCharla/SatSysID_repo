@@ -9,11 +9,11 @@ class SatSys_ssd:
                 self.ssd = ssd_data
                 self.name = name
                 # Calculating theta
-                self.Phi = sf.PhiSat_mat(self.ssd['T'], self.ssd['F'], self.ssd['u2'])
+                self.Phi = sf.PhiSat_mat(self.ssd['T'], self.ssd['F'], self.ssd['u1'])
                 self.H = np.matrix(self.ssd['eta']).T
-                self.W = sf.W_kde(eta=self.ssd['eta'], u1=self.ssd['u1'], u2=self.ssd['u2'],
+                self.W = sf.W_kde(eta=self.ssd['eta'], u2=self.ssd['u2'],
                                   T=self.ssd['T'], F=self.ssd['F'])
-                self.theta = sf.solve_LP(self.Phi[0:-1,:], self.H[1:, :], verbose=True)
+                self.theta = sf.solve_QP(self.Phi[0:-1,:], self.H[1:, :], W=self.W[:-1, :-1], verbose=True)
                 # Calculating epsilon
                 self.eta_hat = (self.Phi[0:-1, :] @ self.theta).flatten()
                 self.eps_bimodal = (self.eta_hat - self.ssd['eta'][1:])

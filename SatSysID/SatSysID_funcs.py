@@ -59,7 +59,7 @@ def PhiSat_mat(T, F, u1):
         PhiSat = np.zeros([N, 3])
         # Looping
         for i in range(N):
-                PhiSat[i, :] = (u1[i]/F[i]**2) * np.array([T[i]**2, T[i], 1])
+                PhiSat[i, :] = (u1[i]/F[i]) * np.array([T[i]**2, T[i], 1])
         #===
         return PhiSat
 
@@ -91,10 +91,11 @@ def Fisher_Information(lmbd:float, Phi:np.ndarray, indices:np.ndarray)->np.ndarr
 
 # ==============================================================================================
 
-def W_kde(eta:np.ndarray, u1:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
+
+def W_kde(eta:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
         """ Returns the diagonal weight matrix square for uniform sampling in the given state/input range"""
-        pdf = gaussian_kde([eta, u1, u2, T, F])
+        pdf = gaussian_kde([eta, u2, T, F])
         N = np.size(T)
-        w = np.array([1/(pdf([eta[i], u1[i], u2[i], T[i], F[i]])) for i in range(N)])
+        w = np.array([1/(pdf([eta[i], u2[i], T[i], F[i]])) for i in range(N)])
         w_norm = w/np.sum(w)
         return np.diag(w_norm.flatten())
