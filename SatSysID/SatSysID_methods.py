@@ -14,13 +14,15 @@ class SatSys_ssd:
                 self.theta = sf.solve_QP(self.Phi[0:-1,:], self.H[1:, :], verbose=False)
                 # Calculating epsilon
                 self.eta_hat = (self.Phi[0:-1, :] @ self.theta).flatten()
-                self.eps = (self.eta_hat - self.ssd['eta'][1:])
+                self.eps_bimodal = (self.eta_hat - self.ssd['eta'][1:])
+                self.indices = [i for i in range(len(self.eps_bimodal)) if self.eps_bimodal[i] <= 2 and self.eps_bimodal[i] >= 0]
+                self.eps = self.eps_bimodal[self.indices]
                 # Fitting distribution
-                self.hfn_fit = sf.fit_dist( self.eps, eps_max=4)
+                self.hfn_fit = sf.fit_dist( self.eps, eps_max=2)
                 self.hfn_lambda = sf.scale2lambda(self.hfn_fit.fit_result.params[1])
                 self.var_eps = self.hfn_fit.fit_result.params[1]**2 * (1 - 2/np.pi)
                 self.exp_eps = 1/self.hfn_lambda
-                self.I_theta = (2*self.hfn_lambda**2/np.pi)* (self.Phi[1: :].T @ self.Phi[1:, :])
+                self.I_theta = sf.Fisher_Information(self.hfn_lambda, self.Phi, self.indices)
                 self.C_theta = np.linalg.inv(self.I_theta)
                 self.sigma_eta = np.sqrt( np.array( [ (self.Phi[j,:]@ self.C_theta @ self.Phi[j,:].T)
                                                         for j in range(np.shape(self.Phi)[0]-1) ] ))
@@ -52,5 +54,5 @@ class SatSys_ssd:
         def calc_Tw(self, theta_ref):
                 """ Calculates the wald test's test-statistic given theta_ref """
                 theta_diff = (self.theta - theta_ref)
-                Tw = (theta_diff.T @ self.I_theta @ theta_diff)[0,0]
-                return Tw
+                self.Tw = (theta_diff.T @ self.I_theta @ theta_diff)[0,0]
+                return self.Tw

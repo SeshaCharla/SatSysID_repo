@@ -73,19 +73,25 @@ class DriveCycle():
 
         def gen_drive_cycles(self):
                 """ Returns the drive cycles dictionary with all the contiguous filtered data """
-                self.N_dc = len(self.iod['drive_cycles'])-1
+                N_dc = len(self.iod['drive_cycles'])-1
                 drive_cycles_unsorted = dict()
-                for j in range(self.N_dc):
+                k = 0
+                for j in range(N_dc):
                         data = self.get_drive_cycle_data(j)
                         ssd = dict()
                         ssd['t'] = np.arange(np.min(data['t']), np.max(data['t']))
                         ssd['data_len'] = len(ssd['t'])
-                        for key in ['y1', 'u1', 'u2', 'T', 'F']:
-                                interp_data = np.interp(ssd['t'], data['t'], data[key])
-                                ssd[key] = sig.sosfiltfilt(drive_cycle_filt, interp_data)
-                        ssd = set_datum(ssd)
-                        ssd['eta'] = etaCalc.calc_eta(ssd['y1'], ssd['u1'])
-                        drive_cycles_unsorted[str(j)] = ssd
+                        if ssd['data_len'] > 1200:  # Only consider drive cycles longer than 20 minutes
+                                for key in ['y1', 'u1', 'u2', 'T', 'F']:
+                                        interp_data = np.interp(ssd['t'], data['t'], data[key])
+                                        ssd[key] = sig.sosfiltfilt(drive_cycle_filt, interp_data)
+                                ssd = set_datum(ssd)
+                                ssd['eta'] = etaCalc.calc_eta(ssd['y1'], ssd['u1'])
+                                drive_cycles_unsorted[str(k)] = ssd
+                                k += 1
+                        else:
+                                continue
+                self.N_dc = k
                 return self.sort_drive_cycles(drive_cycles_unsorted)
 
         # ===========================================================================================
@@ -143,13 +149,18 @@ if __name__ == "__main__":
         from DataProcessing.TruckData import filt_data
         from DataProcessing.TruckData import plotting as pt
 
-        mes_15 = DriveCycle(1, 2, gap=60)
-        mes_15_filt = filt_data.FilteredTruckData(1, 2)
+        age = 0
+        trk = 1
+        mes_15 = DriveCycle(age, trk, gap=60)
+        mes_15_filt = filt_data.FilteredTruckData(age, trk)
 
         def plot_state(y :str):
                 plt.figure()
-                pt.plot_TD(plt.gca(), mes_15_filt.iod['t'], mes_15_filt.iod[y], mes_15_filt.iod['t_skips'])
+                pt.plot_TD(plt.gca(), mes_15_filt.iod['t'], mes_15_filt.iod[y], mes_15_filt.iod['t_skips'], line_style='--')
                 [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)][y], label="drive_cycle_"+str(j)) for j in range(mes_15.N_dc)]
+                plt.xlabel('Time (s)')
+                plt.ylabel(y)
+                plt.title(mes_15.name)
                 plt.legend()
                 plt.grid()
                 plt.show()

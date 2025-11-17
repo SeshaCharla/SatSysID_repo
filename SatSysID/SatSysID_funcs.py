@@ -8,10 +8,10 @@ def solve_QP(Phi:np.ndarray, H:np.ndarray, verbose=False):
         """ Solve the quadratic programming problem with Phi and H """
         P = 2 * Phi.T @ Phi
         q = 2 * (H.T @ Phi).T
-        h = np.vstack([-H, np.zeros([3, 1])])
-        parm_signs = np.eye(3)
-        parm_signs[0, 0] = -1
-        G = np.vstack([-Phi, -parm_signs])
+        h = -H # np.vstack([-H, np.zeros([3, 1])])
+        # parm_signs = np.eye(3)
+        # parm_signs[0, 0] = -1
+        G = -Phi #np.vstack([-Phi, -parm_signs])
         # ===
         # Convex optimization problem
         theta = cp.Variable([3, 1])
@@ -79,6 +79,15 @@ def fit_dist(eps:np.ndarray, eps_max:float=8):
         return res
 
 # ===============================================================================================
+
+def Fisher_Information(lmbd:float, Phi:np.ndarray, indices:np.ndarray)->np.ndarray:
+        """ Returns the Fisher Information Matrix for the given lambda and regression matrix Phi """
+        _, m = np.shape(Phi)
+        Phi_I = np.zeros([len(indices), m])
+        for i in range(len(indices)):
+                Phi_I[i, :] = Phi[indices[i], :]
+        I_theta = (2*lmbd**2/np.pi) * (Phi_I.T @ Phi_I)
+        return I_theta
 
 # Not Using This
 # def W_kde(eta:np.ndarray, u1:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
