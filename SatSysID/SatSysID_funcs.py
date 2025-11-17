@@ -4,10 +4,10 @@ from scipy.stats import halfnorm, goodness_of_fit, gaussian_kde
 
 # ==============================================================================
 
-def solve_QP(Phi:np.ndarray, H:np.ndarray, W:np.ndarray, verbose=False):
+def solve_QP(Phi:np.ndarray, H:np.ndarray, W2:np.ndarray, verbose=False):
         """ Solve the quadratic programming problem with Phi and H """
-        P = 2 * Phi.T @ (W.T @ W) @ Phi
-        q = 2 * (H.T @ (W.T @ W) @ Phi).T
+        P = 2 * Phi.T @ (W2) @ Phi
+        q = 2 * (H.T @ (W2) @ Phi).T
         h = -H # np.vstack([-H, np.zeros([3, 1])])
         # parm_signs = np.eye(3)
         # parm_signs[0, 0] = -1
@@ -91,10 +91,10 @@ def Fisher_Information(lmbd:float, Phi:np.ndarray, indices:np.ndarray)->np.ndarr
 
 # ==============================================================================================
 
-def W_kde(eta:np.ndarray, u1:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
-        """ Returns the diagonal weight matrix for uniform sampling in the given state/input range"""
+def W2_kde(eta:np.ndarray, u1:np.ndarray, u2:np.ndarray, T:np.ndarray, F:np.ndarray)->np.ndarray:
+        """ Returns the diagonal weight matrix square for uniform sampling in the given state/input range"""
         pdf = gaussian_kde([eta, u1, u2, T, F])
         N = np.size(T)
         w = np.array([1/(pdf([eta[i], u1[i], u2[i], T[i], F[i]])) for i in range(N)])
-        w = w/np.sum(w)
-        return np.diag(w.flatten())
+        w2 = (w/np.sum(w))**2
+        return np.diag(w2.flatten())
