@@ -9,7 +9,7 @@ from SatSysID.SatSysID_methods import SatSys_ssd
 j = 2
 set_names = ['cftp', 'hftp', 'rmc']
 data_set = set_names[j]
-dat = [dd.decimatedTestData(0, j+3*i) for i in range(0,4)] + [dd.decimatedTestData(1, j+3*i) for i in range(0, 4)]
+dat = [dd.decimatedTestData(0, j+3*i) for i in range(1,4)] + [dd.decimatedTestData(1, j+3*i) for i in range(1)]
 
 N = len(dat)
 # tst_data = decimate_data.load_decimated_test_data_set()
@@ -20,6 +20,13 @@ for i in range(N):
         ssd_sat_sys[i].predict_eta_sat(dat[-1].ssd)
         iod_sat_sys[i].predict_eta_sat(dat[-1].iod)
 
+for i in range(len(dg_ssd_satSys)):
+        theta = dg_ssd_satSys[i].theta_LP.copy()
+        if (theta[0, 0] < 0 and theta[1, 0] > 0 and theta[2, 0] > 0):
+                dg_theta_ref = theta
+                break
+        else:
+                continue
 
 
 # Plotting response ssd
