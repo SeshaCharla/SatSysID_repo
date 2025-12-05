@@ -40,6 +40,7 @@ def PhiSat_mat(T:np.ndarray, F:np.ndarray, u1:np.ndarray, T0:float, Tr:float)->n
                 x = (T[i] - T0)/Tr
                 PhiSat[i, :] = (u1[i]/F[i]) * np.array([(2*x**2)-1, x, 1])
         #===
+        print("Condition number of PhiSat matrix: ", np.linalg.cond(PhiSat))
         return PhiSat
 
 # ==============================================================================

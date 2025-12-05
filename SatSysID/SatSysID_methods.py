@@ -74,6 +74,7 @@ class SatSys_ssd:
 
         def predict_eta_sat(self, ssd_ref):
                 """ Predicts the response of this particular system to reference inputs ssd_ref"""
+                self.ssd_ref = ssd_ref
                 Phi_ref = sf.PhiSat_mat(ssd_ref['T'], ssd_ref['F'], ssd_ref['u1'], self.T0, self.Tr)
                 self.eta_pred = np.asarray(Phi_ref[0:-1, :] @ self.theta_LP).flatten()
                 self.sigma_pred = np.sqrt( np.array( [ (Phi_ref[j,:] @ self.theta_stats['C_theta'] @ Phi_ref[j,:].T)
@@ -99,6 +100,6 @@ class SatSys_ssd:
 
         def calc_Tw(self, theta_ref):
                 """ Calculates the wald test's test-statistic given theta_ref """
-                theta_diff = (self.theta_QP - theta_ref)
+                theta_diff = (self.theta_LP - theta_ref)
                 self.Tw = (theta_diff.T @ self.theta_stats['I_theta'] @ theta_diff)[0,0]
                 return self.Tw

@@ -6,7 +6,7 @@ from SatSysID import SatSysID_funcs as sf
 from SatSysID.SatSysID_methods import SatSys_ssd
 
 # =====================================================
-j = 2
+j = 1
 set_names = ['cftp', 'hftp', 'rmc']
 data_set = set_names[j]
 dat = [dd.decimatedTestData(0, j+3*i) for i in range(1,4)] + [dd.decimatedTestData(1, j+3*i) for i in range(1)]
@@ -20,14 +20,10 @@ for i in range(N):
         ssd_sat_sys[i].predict_eta_sat(dat[-1].ssd)
         iod_sat_sys[i].predict_eta_sat(dat[-1].iod)
 
-# for i in range(len(dg_ssd_satSys)):
-#         theta = dg_ssd_satSys[i].theta_LP.copy()
-#         if (theta[0, 0] < 0 and theta[1, 0] > 0 and theta[2, 0] > 0):
-#                 dg_theta_ref = theta
-#                 break
-#         else:
-#                 continue
-#
+dg_ssd_satSys = ssd_sat_sys[0:3].copy()
+theta_0 = [dg_ssd_satSys[i].theta_LP[2, 0] for i in range(len(dg_ssd_satSys))]
+theta_ref = dg_ssd_satSys[np.argmax(theta_0)].theta_LP
+
 
 # Plotting response ssd
 for i in range(N):
@@ -42,10 +38,10 @@ for i in range(N):
                          color='C'+str(i),
                          alpha=0.2)
         plt.figure(2)
-        plt.plot(iod_sat_sys[i].ssd_ref['t'][1:], iod_sat_sys[i].eta_pred, label=iod_sat_sys[i].name + r' $\pm 2 \sigma$')
+        plt.plot(iod_sat_sys[i].ssd_ref['t'][1:], iod_sat_sys[i].eta_pred, label=iod_sat_sys[i].name + r' $\pm \sigma$')
         plt.fill_between(iod_sat_sys[i].ssd_ref['t'][1:],
-                         iod_sat_sys[i].eta_pred-2*iod_sat_sys[i].sigma_pred,
-                         iod_sat_sys[i].eta_pred+2*iod_sat_sys[i].sigma_pred,
+                         iod_sat_sys[i].eta_pred-1*iod_sat_sys[i].sigma_pred,
+                         iod_sat_sys[i].eta_pred+1*iod_sat_sys[i].sigma_pred,
                          label=None,
                          color='C'+str(i),
                          alpha=0.2)
