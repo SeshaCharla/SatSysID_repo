@@ -47,5 +47,7 @@ units = {"T":std_units["T"],
          "u1":std_units["con"],
          "eta":std_units["con"],
          "y1":std_units["con"],
-         "u2":std_units["uinj"]}
-
+         "u2":std_units["uinj"],
+         'u1F':std_units["con"]+' /'+std_units["F"],
+         'u2F':std_units["uinj"]+' /'+std_units["F"],
+         'eta_F': std_units["F"]}

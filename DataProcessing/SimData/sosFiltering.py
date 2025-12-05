@@ -2,7 +2,7 @@ import numpy as np
 import  scipy.signal as sig
 
 fs = 1
-lp_filt = sig.cheby2(7,40,  0.15, 'low', analog=False, fs=1, output='sos')
+lp_filt = sig.cheby2(7,40,  0.1, 'low', analog=False, fs=1, output='sos')
 
 def sosff_TD(tskips, x: np.ndarray) -> np.ndarray:
     """Filter the data with time jumps"""
@@ -15,6 +15,9 @@ def sosff_TD(tskips, x: np.ndarray) -> np.ndarray:
             y[tskips[i - 1]:tskips[i]] = x[tskips[i - 1]:tskips[i]]
     return y
 
+fs1_filt = sig.cheby2(7, 40,  0.1, 'lowpass', analog=False, fs=1, output='sos')
+
+# =================================================================================================================
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt

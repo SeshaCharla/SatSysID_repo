@@ -2,6 +2,8 @@ import numpy as np
 import decimation as dc
 import filt_data as fd
 import etaCalc
+import scipy.signal as sig
+from sosFiltering import fs1_filt
 
 
 class decimatedTestData():
@@ -32,6 +34,9 @@ class decimatedTestData():
         ssd['t_skips'] = fd.find_discontinuities(ssd['t'], self.dt)
         ssd['eta_dec'] = ssd['eta']
         ssd['eta'] = etaCalc.calc_eta_TD(ssd['x1'], ssd['u1'], ssd['t_skips'])
+        ssd['u1F'] = sig.sosfiltfilt(fs1_filt, np.array([ssd['u1'][i]/ssd['F'][i] for i in range(len(ssd['u1']))]))
+        ssd['u2F'] = sig.sosfiltfilt(fs1_filt, np.array([ssd['u2'][i]/ssd['F'][i] for i in range(len(ssd['u2']))]))
+        ssd['eta_F'] = sig.sosfiltfilt(fs1_filt, etaCalc.calc_eta_F(ssd['x1'], ssd['u1'], ssd['F']))
         return ssd
 
     # =========================================================================
@@ -49,6 +54,9 @@ class decimatedTestData():
         iod['t_skips'] = fd.find_discontinuities(iod['t'], self.dt)
         iod['eta_dec'] = iod['eta']
         iod['eta'] = etaCalc.calc_eta_TD(iod['y1'], iod['u1'], iod['t_skips'])
+        iod['u1F'] = sig.sosfiltfilt(fs1_filt, np.array([iod['u1'][i]/iod['F'][i] for i in range(len(iod['u1']))]))
+        iod['u2F'] = sig.sosfiltfilt(fs1_filt, np.array([iod['u2'][i]/iod['F'][i] for i in range(len(iod['u2']))]))
+        iod['eta_F'] = sig.sosfiltfilt(fs1_filt, etaCalc.calc_eta_F(iod['y1'], iod['u1'], iod['F']))
         return iod
 
 # ======================================================================================================================
@@ -77,11 +85,12 @@ if __name__ == '__main__':
     # Plotting all the Data sets
     for i in range(2):
         for j in range(ag_tsts[i]):
-            for key in ['u1', 'u2', 'T', 'F', 'x1', 'x2', 'eta', 'mu']:
+            for key in ['u1', 'u2', 'T', 'F', 'x1', 'x2', 'eta', 'mu', 'u1F', 'u2F', 'eta_F']:
                 plt.figure()
-                if (key != 'eta'):
+                if (key != 'eta' and key != 'u1F' and key != 'u2F' and key != 'eta_F'):
                     plt.plot(dct[i][j].filtData.rawData.raw['t'], dct[i][j].filtData.rawData.raw[key], ':', label=key+"_raw", linewidth=1)
-                plt.plot(dct[i][j].filtData.ssd['t'], dct[i][j].filtData.ssd[key], '-.', label= key+"_filtered", linewidth=1)
+                if (key != 'u1F' and key != 'u2F' and key != 'eta_F'):
+                    plt.plot(dct[i][j].filtData.ssd['t'], dct[i][j].filtData.ssd[key], '-.', label= key+"_filtered", linewidth=1)
                 plt.plot(dct[i][j].ssd['t'], dct[i][j].ssd[key], '--',label=key + "_decimated", linewidth=1)
                 if (key == 'eta'):
                     plt.plot(dct[i][j].ssd['t'], dct[i][j].ssd['eta_dec'], '--', label="decimate(eta_filtered)", linewidth=1)
@@ -96,11 +105,12 @@ if __name__ == '__main__':
                 else:
                     plt.show()
 
-            for key in ['u1', 'u2', 'T', 'F', 'y1', 'eta', 'mu']:
+            for key in ['u1', 'u2', 'T', 'F', 'y1', 'eta', 'mu', 'u1F', 'u2F', 'eta_F']:
                 plt.figure()
-                if (key != 'eta'):
+                if (key != 'eta' and key != 'u1F' and key != 'u2F' and key != 'eta_F'):
                     plt.plot(dct[i][j].filtData.rawData.raw['t'], dct[i][j].filtData.rawData.raw[key], ':', label=key+"_raw", linewidth=1)
-                plt.plot(dct[i][j].filtData.iod['t'], dct[i][j].filtData.iod[key], '-.', label= key+"_filtered", linewidth=1)
+                if (key != 'u1F' and key != 'u2F' and key != 'eta_F'):
+                    plt.plot(dct[i][j].filtData.iod['t'], dct[i][j].filtData.iod[key], '-.', label= key+"_filtered", linewidth=1)
                 plt.plot(dct[i][j].iod['t'], dct[i][j].iod[key], '--', label=key + "_decimated", linewidth=1)
                 if (key == 'eta'):
                     plt.plot(dct[i][j].iod['t'], dct[i][j].iod['eta_dec'], '--', label="decimate(eta_filtered)", linewidth=1)
@@ -132,4 +142,4 @@ if __name__ == '__main__':
     plt.close()
 
     # plt.show()
-    # plt.close('all')
+    plt.close('all')

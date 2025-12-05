@@ -85,8 +85,15 @@ class DriveCycle():
                                 for key in ['y1', 'u1', 'u2', 'T', 'F']:
                                         interp_data = np.interp(ssd['t'], data['t'], data[key])
                                         ssd[key] = sig.sosfiltfilt(drive_cycle_filt, interp_data)
-                                ssd = set_datum(ssd)
+                                ssd = set_datum(ssd, 'iod')
                                 ssd['eta'] = etaCalc.calc_eta(ssd['y1'], ssd['u1'])
+                                ssd['u1F'] = sig.sosfiltfilt(drive_cycle_filt,
+                                                np.array([ssd['u1'][i]/ssd['F'][i] for i in range(len(ssd['u1']))]))
+                                ssd['u2F'] = sig.sosfiltfilt(drive_cycle_filt,
+                                                np.array([ssd['u2'][i]/ssd['F'][i] for i in range(len(ssd['u2']))]))
+                                ssd['eta_F'] = sig.sosfiltfilt(drive_cycle_filt,
+                                                               etaCalc.calc_eta_F(ssd['y1'], ssd['u1'], ssd['F']))
+                                ssd = set_datum(ssd, 'ssd')
                                 drive_cycles_unsorted[str(k)] = ssd
                                 k += 1
                         else:
@@ -116,19 +123,26 @@ class DriveCycle():
                 # Find the time discontinuities in IOD Data
                 iod['drive_cycles'] = find_drive_cycles(iod['t'], gap=self.gap)
                 # Set datum for the data
-                iod = set_datum(iod)
+                iod = set_datum(iod, 'iod')
                 return iod
 
 # =======================================================================================================
 
-def set_datum(ssd):
+def set_datum(ssd, data_type : str ='ssd'):
         """Set the minimum values in data sets"""
         datum = {}
         datum['u1'] = 0.2     # Most of the testcell data shows this
         datum['u2'] = 0.1
         datum['F'] = 3     # From all the test cell data
         datum['y1'] = 0
-        keys = ['y1', 'u1', 'u2', 'F']
+        datum['eta'] = 0
+        datum['eta_F'] = 0
+        datum['u1F'] = 0.2/3
+        datum["u2F"] = 0.1/3
+        if data_type == 'ssd':
+                keys = ['y1', 'u1', 'u2', 'F', 'eta', 'eta_F', 'u1F', 'u2F']
+        else:
+                keys = ['y1', 'u1', 'u2', 'F']
         for key in keys:
                 ssd[key] = np.array([val if val >= datum[key] else datum[key] for val in ssd[key]])
         return ssd
@@ -156,7 +170,7 @@ if __name__ == "__main__":
 
         def plot_state(y :str):
                 plt.figure()
-                pt.plot_TD(plt.gca(), mes_15_filt.iod['t'], mes_15_filt.iod[y], mes_15_filt.iod['t_skips'], line_style='--')
+                # pt.plot_TD(plt.gca(), mes_15_filt.iod['t'], mes_15_filt.iod[y], mes_15_filt.iod['t_skips'], line_style='--')
                 [plt.plot(mes_15.drive_cycles[str(j)]['t'], mes_15.drive_cycles[str(j)][y], label="drive_cycle_"+str(j)) for j in range(mes_15.N_dc)]
                 plt.xlabel('Time (s)')
                 plt.ylabel(y)
@@ -165,4 +179,4 @@ if __name__ == "__main__":
                 plt.grid()
                 plt.show()
 
-        plot_state('eta')
+        plot_state('eta_F')

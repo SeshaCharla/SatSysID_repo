@@ -15,12 +15,15 @@ def sosff_TD(tskips, x: np.ndarray) -> np.ndarray:
     return y
 
 
+fs1_filt = sig.cheby2(7, 40,  0.1, 'lowpass', analog=False, fs=1, output='sos')
+
+# ====================================================================================================================
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import matplotlib as mpl
     mpl.use('qtAgg')
 
-    w, h = sig.sosfreqz(lp_filt, worN=1500)
+    w, h = sig.sosfreqz(fs1_filt, worN=1500)
 
     plt.subplot(2, 1, 1)
     db = 20*np.log10(np.maximum(np.abs(h), 1e-5))

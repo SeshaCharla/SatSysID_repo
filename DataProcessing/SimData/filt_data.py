@@ -2,6 +2,7 @@ import numpy as np
 from DataProcessing.SimData import rdRawDat as rd
 from DataProcessing.SimData import sosFiltering as sf
 from DataProcessing.SimData import etaCalc
+import scipy.signal as sig
 
 # Array Manipulating functions ------------------------------------------------------
 #==============================================================================================
@@ -63,13 +64,17 @@ class FilteredSimData():
         for state in ['x1', 'x2', 'u1', 'u2', 'T', 'F', 'gamma']:
             ssd[state] = sf.sosff_TD(ssd['t_skips'], ssd[state])
         # Set datum for the data
-        ssd = self.set_datum(ssd, type='ssd')
+        ssd = self.set_datum(ssd, data_type='ssd')
         # Calculating eta
         ssd['eta'] = etaCalc.calc_eta_TD(ssd['x1'], ssd['u1'], ssd['t_skips'])
+        ssd['u1F'] = sig.sosfiltfilt(sf.fs1_filt, np.array([ssd['u1'][i]/ssd['F'][i] for i in range(len(ssd['u1']))]))
+        ssd['u2F'] = sig.sosfiltfilt(sf.fs1_filt, np.array([ssd['u2'][i]/ssd['F'][i] for i in range(len(ssd['u2']))]))
+        ssd['eta_F'] = sig.sosfiltfilt(sf.fs1_filt, etaCalc.calc_eta_F(ssd['x1'], ssd['u1'], ssd['F']))
+        ssd = self.set_datum(ssd, data_type='ssd_F')
         return  ssd
 
     #===================================================================================================================
-    def set_datum(self, ssd, type='ssd'):
+    def set_datum(self, ssd, data_type='ssd'):
         """Set the minimum values in data sets"""
         datum = {}
         datum['x1'] = 0
@@ -79,9 +84,16 @@ class FilteredSimData():
         datum['F'] = 3     # From all the test cell data
         datum['y1'] = 0
         datum['gamma'] = 0
+        datum['eta'] = 0
+        datum['eta_F'] = 0
+        datum['u1F'] = 0.2/3
+        datum["u2F"] = 0.1/3
         ssd_keys = ['x1', 'x2', 'u1', 'u2', 'F', 'gamma']
-        if type == 'ssd':
+        ssd_F_keys = ['eta', 'eta_F', 'u1F', 'u2F']
+        if data_type == 'ssd':
             key_set = ssd_keys
+        elif data_type == 'ssd_F':
+            key_set = ssd_F_keys
         else:
             raise ValueError("type must be 'ssd' or 'iod'")
         for key in key_set:
@@ -109,7 +121,7 @@ if __name__ == '__main__':
     sim_data = rd.load_sim_data_set()
     filtered_sim_data = load_filtered_sim_data_set()
     fig_dpi = 300
-    keys = ['u1', 'u2', 'T', 'F', 'x1', 'x2', 'eta', 'gamma']
+    keys = ['u1', 'u2', 'T', 'F', 'x1', 'x2', 'eta', 'gamma', 'u1F', 'u2F', 'eta_F']
 
     # Plotting all the Data sets
     for i in range(3):
