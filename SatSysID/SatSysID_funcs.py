@@ -82,7 +82,9 @@ def fit_dist(eps:np.ndarray, eps_max:float=8):
 
 def Fisher_Information(lmbd:float, Phi:np.ndarray)->np.ndarray:
         """ Returns the Fisher Information Matrix for the given lambda and regression matrix Phi """
-        I_theta = (2*lmbd**2/np.pi) * (Phi.T @ Phi)
+        N, _ = np.shape(Phi)
+        Phi_I = Phi[0:np.min([N, 300]), :]
+        I_theta = (2*lmbd**2/np.pi) * (Phi_I.T @ Phi_I)
         return I_theta
 
 # ==============================================================================================

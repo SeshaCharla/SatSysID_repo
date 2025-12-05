@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from SatSysID import SatSysID_funcs as sf
 from SatSysID.SatSysID_methods import SatSys_ssd
 
-dg_trk = dc.DriveCycle(0, 3, gap=60)
-ag_trk = dc.DriveCycle(1, 3, gap=60)
+dg_trk = dc.DriveCycle(0, 1, gap=60)
+ag_trk = dc.DriveCycle(1, 1, gap=60)
 
 dg_ssd = [dg_trk.drive_cycles[str(j)] for j in range(dg_trk.N_dc)]
 ag_ssd = [ag_trk.drive_cycles[str(j)] for j in range(ag_trk.N_dc)]
@@ -36,4 +36,6 @@ plt.figure()
 plt.hist(dg_Tw, label=dg_trk.name, bins=100)
 plt.hist(ag_Tw, label=ag_trk.name, bins=100)
 plt.legend()
+plt.ylabel("No. of Drive Segments")
+plt.xlabel("Value of Test Statistic (Tw)")
 plt.show()

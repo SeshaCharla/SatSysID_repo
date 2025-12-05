@@ -1,5 +1,6 @@
 import numpy as np
 import SatSysID_funcs as sf
+import matplotlib.pyplot as plt
 
 class SatSys_ssd:
         """ The class that holds the data and methods for ssd SatSysID """
@@ -9,10 +10,20 @@ class SatSys_ssd:
                 self.ssd = ssd_data
                 self.name = name
                 # Calculating theta
-                self.theta_LP, self.idx = self.detect_sat()
+                self.theta_LP, self.eps_bimodal, self.idx = self.detect_sat()
                 self.theta_QP, self.theta_stats = self.get_theta_stats()
+                self.min_max = self.min_max_data()
 
         #==============================================================================================
+
+        def min_max_data(self):
+                """ Returns the dictionary for the min_max data """
+                min_max = dict()
+                for key in ['u1', 'u2', 'eta', 'T', 'F']:
+                        min_max[key] = ( np.min(self.ssd[key][self.idx]), np.max(self.ssd[key][self.idx]) )
+                return min_max
+
+        # ===========================================================================================================
 
         def get_theta_stats(self):
                 """ Get the statistics of the paramter estimates by solving the quadratic programming problem """
@@ -65,7 +76,7 @@ class SatSys_ssd:
                 eta_hat = (Phi[0:-1, :] @ theta_LP).flatten()
                 eps_bimodal = (eta_hat - self.ssd['eta'][1:])
                 idx = [i for i in range(len(eps_bimodal)) if eps_bimodal[i] <= 2 and eps_bimodal[i] >= 0]
-                return theta_LP, np.array(idx)
+                return theta_LP, eps_bimodal, np.array(idx)
 
         # ===========================================================================================
 
@@ -79,14 +90,19 @@ class SatSys_ssd:
 
         # =================================================================================================
 
-        def temp_var(self):
+        def temp_var(self, plot=True):
                 """ Get the temperature variation of the Max. sigma """
                 N = 1000
-                self.T_lin = np.linspace(np.min(self.ssd['T']), np.max(self.ssd['T']), N)
-                Phi = np.matrix([np.array([Ti**2, Ti, 1]) for Ti in self.T_lin])
-                self.gamma_max = (Phi @ self.theta_QP).flatten()
-                self.sigma_gamma_max = np.sqrt( np.array( [ (Phi[j,:] @ self.theta_stats['C_theta'] @  Phi[j,:].T)[0,0]
+                T_lin = np.linspace(self.min_max['T'][0], self.min_max['T'][1], N)
+                Phi = np.matrix([np.array([Ti**2, Ti, 1]) for Ti in T_lin])
+                gamma_max = (Phi @ self.theta_QP).A1
+                sigma_gamma_max = np.sqrt( np.array( [ (Phi[j,:] @ self.theta_stats['C_theta'] @  Phi[j,:].T)[0,0]
                                                         for j in range(N) ] ))
+                if plot:
+                        plt.plot(T_lin, gamma_max, label=self.name + r'$\hat \eta_{sat}$ $\pm \sigma$')
+                        plt.fill_between(T_lin, gamma_max-sigma_gamma_max, gamma_max+sigma_gamma_max,
+                                         alpha=0.2)
+                return T_lin, gamma_max, sigma_gamma_max
 
         # ===================================================================================================
 
