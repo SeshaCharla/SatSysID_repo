@@ -1,65 +1,44 @@
 import numpy as np
 import cvxpy as cp
 from scipy.stats import halfnorm, goodness_of_fit, gaussian_kde
-
-# ==============================================================================
-
-def solve_QP(Phi:np.ndarray, H:np.ndarray, W:np.ndarray, verbose=False):
-        """ Solve the quadratic programming problem with Phi and H """
-        P = 2 * Phi.T @ (W**2) @ Phi
-        q = 2 * (H.T @ (W**2) @ Phi).T
-        h = np.vstack([-H, np.zeros([3, 1])])
-        parm_signs = np.eye(3)
-        parm_signs[0, 0] = -1
-        G = np.vstack([-Phi, -parm_signs])
-        # ===
-        # Convex optimization problem
-        theta = cp.Variable([3, 1])
-        objective = cp.Minimize( (1/2)*cp.quad_form(theta, P) - q.T @ theta )
-        constraints = [G @ theta <= h]
-        prob = cp.Problem(objective=objective, constraints=constraints)
-        # Convex optimization problem
-        # theta = cp.Variable([3, 1])
-        # objective = cp.Minimize(cp.sum_squares(Phi@theta-H))
-        # constraints = [Phi@theta >= H,
-        #                theta[0, 0] <= 0,
-        #                theta[1, 0] >= 0,
-        #                theta[2, 0] >= 0]
-        # prob = cp.Problem(objective=objective, constraints=constraints)
-        prob.solve(solver='MOSEK', verbose=verbose) #,
-        #===
-        # Solution
-        return theta.value
+from scipy.optimize import linprog
 
 # ==============================================================================
 
 def solve_LP(Phi:np.ndarray, H:np.ndarray, verbose=False):
         """ Solve the quadratic programming problem with Phi and H """
-        # Convex optimization problem
-        theta = cp.Variable([3, 1])
-        objective = cp.Minimize(cp.sum(Phi@theta))
-        constraints = [Phi@theta >= H]
-                #        theta[0, 0] <= 0,
-                #        theta[1, 0] >= 0,
-                #        theta[2, 0] >= 0]
-        prob = cp.Problem(objective=objective, constraints=constraints)
-        prob.solve(solver="MOSEK", verbose=verbose) #solver='MOSEK',
-        #===
-        # Solution
-        return theta.value
-
+        # # Convex optimization problem
+        # theta = cp.Variable([4, 1])
+        # objective = cp.Minimize(cp.sum(Phi@theta))
+        # constraints = [Phi@theta >= H]
+        # prob = cp.Problem(objective=objective, constraints=constraints)
+        # prob.solve(solver="MOSEK", verbose=verbose)
+        # return theta.value
+        # ==============================================
+        c = np.sum(np.asarray(Phi), axis=0)
+        A_ub = -np.asarray(Phi)
+        b_ub = -np.asarray(H).flatten()
+        inf_bounds = [(-np.inf, np.inf) for _ in range(len(c))]
+        res = linprog(c=c, A_ub=A_ub, b_ub=b_ub, method='highs', bounds=inf_bounds, options={'disp': verbose})
+        return res
 
 # ==============================================================================
 
-def PhiSat_mat(T, F, u1):
-        """Returns the regression matrix for the given series or T, F and u1
-           eta[k+1] = (u1[k]/F[k]) * [T**2 T 1] * [th1, th2 th3]^T
+def PhiSat_mat(T:np.ndarray, F:np.ndarray, u1:np.ndarray, T0:float, Tr:float)->np.ndarray:
+        """Returns the regression matrix for the given series or T using Chebyshev polynomials
+           eta[k+1] = [th1, th2 th3]^T
+           T_0 = 1,
+           T_1 = x,
+           T_2 = 2x^2 -1
+           T_3 = 4x^3 - 3x
+           T_4 = 8x^4 - 8x^2 +1
         """
         N = len(T)
         PhiSat = np.zeros([N, 3])
         # Looping
         for i in range(N):
-                PhiSat[i, :] = (u1[i]/F[i]) * np.array([T[i]**2, T[i], 1])
+                x = (T[i] - T0)/Tr
+                PhiSat[i, :] = (u1[i]/F[i]) * np.array([(2*x**2)-1, x, 1])
         #===
         return PhiSat
 
@@ -83,8 +62,7 @@ def fit_dist(eps:np.ndarray, eps_max:float=8):
 def Fisher_Information(lmbd:float, Phi:np.ndarray)->np.ndarray:
         """ Returns the Fisher Information Matrix for the given lambda and regression matrix Phi """
         N, _ = np.shape(Phi)
-        Phi_I = Phi[0:np.min([N, 300]), :]
-        I_theta = (2*lmbd**2/np.pi) * (Phi_I.T @ Phi_I)
+        I_theta = (2*lmbd**2/np.pi) * (Phi.T @ Phi)
         return I_theta
 
 # ==============================================================================================

@@ -9,10 +9,17 @@ class SatSys_ssd:
                 """ Initiates the class with ssd data """
                 self.ssd = ssd_data
                 self.name = name
+                self.eps_max = 4
+                if 'rmc' in name.lower():
+                        self.T0 = 10
+                        self.Tr = 6
+                else:
+                        self.T0 = 5
+                        self.Tr = 5
                 # Calculating theta
-                self.theta_LP, self.eps_bimodal, self.idx = self.detect_sat()
-                self.theta_QP, self.theta_stats = self.get_theta_stats()
-                self.min_max = self.min_max_data()
+                self.theta_LP, self.eps_bimodal, self.idx, self.Phi = self.detect_sat()
+                self.theta_stats = self.get_theta_stats()
+                # self.min_max = self.min_max_data()
 
         #==============================================================================================
 
@@ -26,23 +33,9 @@ class SatSys_ssd:
         # ===========================================================================================================
 
         def get_theta_stats(self):
-                """ Get the statistics of the paramter estimates by solving the quadratic programming problem """
-                # Getting the relavent data
-                eta = self.ssd['eta'][self.idx+1]
-                u1 = self.ssd['u1'][self.idx]
-                u2 = self.ssd['u2'][self.idx]
-                F = self.ssd["F"][self.idx]
-                T = self.ssd["T"][self.idx]
-                Phi = sf.PhiSat_mat(T, F, u1)
-                H = np.matrix(eta).T
-                W = sf.W_kde(eta, u2, T, F)
-                # Solving the Quadratic Program
-                theta_QP = sf.solve_QP(Phi, H, W)
-                # Calculating epsilon
-                eta_hat = (Phi @ theta_QP).flatten()
-                eps = (eta_hat - eta)
-                # Fitting distribution
-                hfn_fit = sf.fit_dist(eps, eps_max=2)
+                """ Get the statistics of the paramter estimates """
+                Phi = self.Phi[self.idx,:]
+                hfn_fit = sf.fit_dist(self.eps_bimodal, eps_max=self.eps_max)
                 hfn_lambda = sf.scale2lambda(hfn_fit.fit_result.params[1])
                 var_eps = hfn_fit.fit_result.params[1]**2 * (1 - 2/np.pi)
                 exp_eps = 1/hfn_lambda
@@ -52,7 +45,7 @@ class SatSys_ssd:
                                                         for j in range(np.shape(Phi)[0]-1) ] ))
                 # Putting the caclulations into dictionary
                 theta_stats = dict()
-                theta_stats["eps"] = eps
+                theta_stats["eps"] = self.eps_bimodal[self.idx]
                 theta_stats["hfn_fit"] = hfn_fit
                 theta_stats['hfn_lambda'] = hfn_lambda
                 theta_stats["var_eps"] = var_eps
@@ -61,30 +54,28 @@ class SatSys_ssd:
                 theta_stats['C_theta'] = C_theta
                 theta_stats['sigma_eta_sat'] = sigma_eta_sat
                 # ====
-                return theta_QP, theta_stats
-
-
+                return theta_stats
 
         # ==========================================================================================
 
         def detect_sat(self):
                 """ Detect the saturated segments and return the LP solution and """
-                Phi = sf.PhiSat_mat(self.ssd['T'], self.ssd['F'], self.ssd['u1'])
-                H = np.matrix(self.ssd['eta']).T
-                theta_LP = sf.solve_LP(Phi[0:-1,:], H[1:, :], verbose=False)
+                Phi = sf.PhiSat_mat(self.ssd['T'], self.ssd['F'], self.ssd['u1'], T0=self.T0, Tr=self.Tr)
+                H = self.ssd['eta']
+                LP_res = sf.solve_LP(Phi[0:-1,:], H[1:], verbose=False)
+                theta_LP = np.matrix(LP_res.x).T
                 # Calculate the error
-                eta_hat = (Phi[0:-1, :] @ theta_LP).flatten()
+                eta_hat = np.asarray(Phi[0:-1, :] @ theta_LP).flatten()
                 eps_bimodal = (eta_hat - self.ssd['eta'][1:])
-                idx = [i for i in range(len(eps_bimodal)) if eps_bimodal[i] <= 2 and eps_bimodal[i] >= 0]
-                return theta_LP, eps_bimodal, np.array(idx)
+                idx = [i for i in range(len(eps_bimodal)) if eps_bimodal[i] <= self.eps_max and eps_bimodal[i] >= 0]
+                return theta_LP, eps_bimodal, np.array(idx), Phi
 
         # ===========================================================================================
 
         def predict_eta_sat(self, ssd_ref):
                 """ Predicts the response of this particular system to reference inputs ssd_ref"""
-                self.ssd_ref = ssd_ref
-                Phi_ref = sf.PhiSat_mat(self.ssd_ref['T'], self.ssd_ref['F'], self.ssd_ref['u1'])
-                self.eta_pred = (Phi_ref[0:-1, :] @ self.theta_QP).flatten()
+                Phi_ref = sf.PhiSat_mat(ssd_ref['T'], ssd_ref['F'], ssd_ref['u1'], self.T0, self.Tr)
+                self.eta_pred = np.asarray(Phi_ref[0:-1, :] @ self.theta_LP).flatten()
                 self.sigma_pred = np.sqrt( np.array( [ (Phi_ref[j,:] @ self.theta_stats['C_theta'] @ Phi_ref[j,:].T)
                                                         for j in range(np.shape(Phi_ref)[0]-1) ] ))
 
@@ -94,8 +85,8 @@ class SatSys_ssd:
                 """ Get the temperature variation of the Max. sigma """
                 N = 1000
                 T_lin = np.linspace(self.min_max['T'][0], self.min_max['T'][1], N)
-                Phi = np.matrix([np.array([Ti**2, Ti, 1]) for Ti in T_lin])
-                gamma_max = (Phi @ self.theta_QP).A1
+                Phi = np.matrix([np.array([(2*(Ti-self.T0)/self.Tr)**2 - 1, ((Ti-self.T0)/self.Tr), 1]) for Ti in T_lin])
+                gamma_max = (Phi @ self.theta_LP).A1
                 sigma_gamma_max = np.sqrt( np.array( [ (Phi[j,:] @ self.theta_stats['C_theta'] @  Phi[j,:].T)[0,0]
                                                         for j in range(N) ] ))
                 if plot:
